@@ -3,7 +3,7 @@ library(dplyr)
 library(tidyverse)
 library(broom)
 
-gld<-read.csv("Desktop/gld_price_data.csv",header=TRUE,check.names =FALSE)
+gld<-read.csv("../../2 Info 640 Data Analysis/PDA-Yilan/gld_price_data.csv",header=TRUE,check.names =FALSE)
 head(gld)
 tail(gld)
 
@@ -15,6 +15,7 @@ ggplot(gld,aes(x=USO, y=GLD))+
   labs(title = "Gold Price VS. US Oil Price")
 
 lm_gld<-lm(GLD~USO,data=gld)
+summary(lm_gld)
 new_gld <- data.frame("USO" = 60)
 predict(lm_gld, newdata=new_gld)
 
@@ -31,6 +32,7 @@ ggplot(gld,aes(x=SPX, y=GLD))+
 
 
 lm_gld<-lm(GLD~SPX,data=gld)
+summary(lm_gld)
 new_gld <- data.frame("SPX" = 2500)
 predict(lm_gld, newdata=new_gld)
 
@@ -47,6 +49,7 @@ ggplot(gld,aes(x=SLV, y=GLD))+
   labs(title = "Gold Price VS. Silver Price")
 
 lm_gld<-lm(GLD~SLV,data=gld)
+summary(lm_gld)
 new_gld <- data.frame("SLV" = 40)
 predict(lm_gld, newdata=new_gld)
 
