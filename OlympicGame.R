@@ -16,60 +16,119 @@ library(mapdata)
 library(sf)
 library(topicmodels)
 
-Athl <- read_csv(file ="Desktop/120-years-of-olympic-history-athletes-and-results/athlete_events.csv")
-head(Athl)
-summary(Athl)
-glimpse(Athl)
+#Population
 
-athldata<-select(Athl,Name,Sex, Age,Height,Weight,Team,Year,Season, City,Sport)
-athldata
-summary(athldata)
-unique(athldata$Sport)
-
-athl_2000<-athldata %>% filter(Year>2000)
-ggplot(athl_2000,aes(x=athl_2000$Year,y=athl_2000$Age,color=athl_2000$Sex))+geom_jitter(alpha = 0.6)+
-  labs(title = "Athletes' age an sex visualization ")
-summary(athl_2000$Sex)
-
-athldata$Sex <- as.factor(gsub("M", "1",Athl$Sex)) 
-athldata$Sex <- as.factor(gsub("F", "0", Athl$Sex))
-
-
-athl_f<-athldata %>% filter(Sex=="F")
-athl_f_shoot<-athldata %>% filter(Sex=="F") %>% filter(Sport=="Shooting")
-ggplot(athl_f, aes(x=athl_f$Weight,y=athl_f$Height, color=athl_f$Season))+geom_point()
-ggplot(athl_f_shoot, aes(x=athl_f_shoot$Weight,y=athl_f_shoot$Height, color=athl_f_shoot$Year))+geom_point()
-
-sum_metal<- read.csv(file = "Desktop/olympic-games/summer.csv")
-head(sum_metal)  
-summary(sum_metal)
-glimpse(sum_metal)
-unique(sum_metal$Sport)
+london<-read.csv(file = "Desktop/2012 Population.csv")
+head(london)
+summary(london)
+unique(london$Country)
+medaldata<-select(london,Country,Weighted_Medals, Population)
+london_medal<-medaldata %>% arrange(desc(Weighted_Medals)) 
+head(london_medal)
+london_medal$Population<-as.integer(london_medal$Population)
+ggplot(london_medal,aes(x=Population,y=Weighted_Medals))+geom_jitter(alpha = 0.6)+ stat_smooth(method = "lm", se=FALSE)+
+  labs(title = "Population Vs Weighted Medals in 2012 London Olympics") + scale_y_continuous("Weighted Medals")+
+  theme(panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_blank(),
+        strip.background = element_blank(),
+        axis.text = element_text(colour = "black"),
+        axis.ticks = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        strip.text = element_blank(),
+        panel.spacing = unit(1, "lines"))
 
 
-sum_london<-sum_metal %>% filter(City=="London") %>% filter(Year==2012)
-summary(sum_london)
-sum_london_GBR<-sum_metal %>% filter(City=="London") %>% filter(Country=="GBR") %>% filter(Year==2012)
-summary(sum_london_GBR)
+lm_medalPOP<-lm(Weighted_Medals~Population,data=london_medal)
+lm_medalPOP
 
-ggplot(sum_london, aes(x=sum_london$Country,y=sum_london$Event,color=sum_london$Metal))+geom_point()
-sum_london<-sum_metal %>% filter(City=="London") %>% filter(Gender=="Women")
+summary(lm_medalPOP)
+coef(lm_medalPOP)
 
-summary(sum_metal$Gender)
+#GDP
 
-nation<- read_csv(file = "Desktop/olympic-games/dictionary.csv")
-head(nation)  
-summary(nation)  
-gdp<-nation %>% arrange(desc(GDPperCapita))
-topgdp<-head(gdp,n=10)
-topgdp
-ggplot(topgdp,aes(x=topgdp$Country,y=topgdp$GDPperCapita))+geom_point() + labs(title = "Top Ten GDP per Capita ")
+londonGDP<-read.csv(file = "Desktop/2012 GDP.csv")
+head(londonGDP)
+summary(londonGDP)
 
-pop<-nation %>% arrange(desc(Population))
-toppop<-head(pop,n=10)
-toppop
+medaldata<-select(londonGDP,Country,Weighted_Medals,GDP...US.billion.)
+london_medal<-medaldata %>% arrange(desc(Weighted_Medals))
+head(london_medal)
 
-ggplot(toppop,aes(x=toppop$Country,y=toppop$Population))+geom_point()  + labs(title = "Top Ten Populations ")
-
-
+ggplot(london_medal,aes(x=GDP...US.billion.,y=Weighted_Medals))+geom_jitter(alpha = 0.6)+stat_smooth(method = "lm", se=FALSE)+
+  labs(title = "GDP Vs Weighted Medals in 2012 London Olympics") + scale_x_continuous("GDP ($US Dollar)")+scale_y_continuous("Weighted Medals")+
+  theme(panel.background = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_blank(),
+        strip.background = element_blank(),
+        axis.text = element_text(colour = "black"),
+        axis.ticks = element_line(colour = "black"),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        strip.text = element_blank(),
+        panel.spacing = unit(1, "lines"))
+lm_medalGDP<-lm(Weighted_Medals~GDP...US.billion.,data=london_medal)
+lm_medalGDP
   
+summary(lm_medalGDP)
+coef(lm_medalGDP)
+
+
+#Host City Advantage
+
+GB<-read.csv(file = "Desktop/Great Britain.csv")
+head(GB)
+summary(GB)
+
+GB1996<-GB%>%filter(Year>="1996")
+ggplot(GB1996,aes(x=Year,y=GB.Total))+geom_point()+ stat_smooth(method = "lm", se=FALSE)+
+  labs(title = "Olympics Performance of Great Britain Between 1996 and 2016") + scale_y_continuous("Weighted Medals of GB/Total Weighted Medals")
+lm_GB1996<-lm(GB.Total~Year,data=GB1996)
+lm_GB1996
+new_GB2012 <- data.frame("Year" = 2012)
+predict(lm_GB1996, newdata=new_GB2012)
+summary(lm_GB1996)
+coef(lm_GB1996)
+
+
+GB1948<-GB%>%filter(Year>="1948")%>%filter(Year<="1992")
+ggplot(GB1948,aes(x=Year,y=GB.Total))+geom_point()+ stat_smooth(method = "lm", se=FALSE)+
+  labs(title = "Olympics Performance of Great Britain Between 1948 and 1992") + scale_y_continuous("Weighted Medals of GB/Total Weighted Medals")
+lm_GB1948<-lm(GB.Total~Year,data=GB1948)
+lm_GB1948
+new_GB1948 <- data.frame("Year" = 1948)
+predict(lm_GB1948, newdata=new_GB1948)
+summary(lm_GB1948)
+coef(lm_GB1948)
+
+
+
+GB1896<-GB%>%filter(Year>="1896")%>%filter(Year<="1936")
+ggplot(GB1896,aes(x=Year,y=GB.Total))+geom_point()+ stat_smooth(method = "lm", se=FALSE)+
+  labs(title = "Olympics Performance of Great Britain Between 1896 and 1936") + scale_y_continuous("Weighted Medals of GB/Total Weighted Medals")
+lm_GB1896<-lm(GB.Total~Year,data=GB1896)
+lm_GB1896
+new_GB1908 <- data.frame("Year" = 1908)
+predict(lm_GB1896, newdata=new_GB1908)
+summary(lm_GB1896)
+coef(lm_GB1896)
+
+
+GB<-read.csv(file = "Desktop/Great_Britain.csv")
+head(GB)
+summary(GB)
+
+ggplot(GB,aes(x=Year,y=Athletes))+geom_point()+ geom_line() +
+  labs(title = "Athletes Number of Great Britain in Olympics") 
+
+ggplot(GB,aes(x=Year,y=GB_Weighted_Medals..Total_Weighted_Medals ))+geom_point()+ geom_line() +
+  labs(title = "Athletes Performance of Great Britain in Olympics") 
+
+
+ggplot(GB,aes(x=Athletes,y=GB_Weighted_Medals..Total_Weighted_Medals ))+geom_point()+ stat_smooth(method="lm") +
+  labs(title = "Athletes Performance Vs. Athletes Number of Great Britain in Olympics") +scale_y_continuous("Weighted Medals of GB/Total Weighted Medals")
+
+
